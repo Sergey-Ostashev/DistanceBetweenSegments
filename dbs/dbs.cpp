@@ -175,6 +175,16 @@ void test_all()
 
 int main()
 {
-	test_all();
+	//test_all();
+	Segment s1, s2;
+	cout << "Input start point of first segment (type Enter after each value)" << endl;
+	cin >> s1.m_start.m_x >> s1.m_start.m_y >> s1.m_start.m_z;
+	cout << "Input end point of first segment (type Enter after each value)" << endl;
+	cin >> s1.m_end.m_x >> s1.m_end.m_y >> s1.m_end.m_z;
+	cout << "Input start point of second segment (type Enter after each value)" << endl;
+	cin >> s2.m_start.m_x >> s2.m_start.m_y >> s2.m_start.m_z;
+	cout << "Input end point of second segment (type Enter after each value)" << endl;
+	cin >> s2.m_end.m_x >> s2.m_end.m_y >> s2.m_end.m_z;
+	cout << "distance: " << distance(s1, s2) << endl;
 	return 0;
 }
