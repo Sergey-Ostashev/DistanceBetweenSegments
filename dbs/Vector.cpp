@@ -56,4 +56,9 @@ namespace dbs
 	{
 		return (m_end - m_start).norm();
 	}
+
+	bool Segment::is_point() const
+	{
+		return m_start == m_end;
+	}
 }

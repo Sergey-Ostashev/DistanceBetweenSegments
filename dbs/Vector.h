@@ -24,6 +24,7 @@ namespace dbs
 		Vector m_start;
 		Vector m_end;
 
+		bool is_point() const;
 		double len() const;
 		double sqr_len() const;
 	};
