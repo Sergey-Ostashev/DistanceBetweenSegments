@@ -9,7 +9,7 @@
 using namespace std;
 using namespace dbs;
 
-double distance(const Segment& s1, const Segment& s2)
+double distance(const Segment& s1, const Segment& s2, double& tr1, double& tr2)
 {
 	double n1 = s1.len();
 	double n2 = s2.len();
@@ -35,38 +35,64 @@ double distance(const Segment& s1, const Segment& s2)
 				2 * t1 / (n1 * n1) * (s1.m_end - s1.m_start).sqr_norm();
 		};
 
-		double D = (s2.m_start - s1.m_start) * (s1.m_end - s1.m_start) * 2 / n1;
-		double E = (s2.m_end - s2.m_start) * (s1.m_end - s1.m_start) * 2 / (n1 * n2);
-		double F = 2;
-
-		double A = (s2.m_start - s1.m_start) * (s2.m_end - s2.m_start) * 2 / n2;
-		double B = (s2.m_end - s2.m_start) * (s1.m_end - s1.m_start) * 2 / (n1 * n2);
-		double C = 2;
-
-		double det = C * F - E * B;
-		double det1 = C * D - A * E;
-		double det2 = B * D - A * F;
-
-		double t1 = n1 > 0 ? (n2 > 0 ? det1 / det : D / F): 0;
-		double t2 = n2 > 0 ? (n1 > 0 ? det2 / det : -A / C) : 0;
-
 		vector<double> possible_t1;
-		if ((t1 < 0) || (t1 > n1))
-		{
-			possible_t1.push_back(0);
-			possible_t1.push_back(n1);
-		}
-		else
-			possible_t1.push_back(t1);
-
 		vector<double> possible_t2;
-		if ((t2 < 0) || (t2 > n2))
+		double inner_product = (s2.m_end - s2.m_start) * (s1.m_end - s1.m_start);
+		if ((n1 * n2 > 0) && ((inner_product * inner_product) / (s1.sqr_len() * s2.sqr_len()) == 1))
 		{
-			possible_t2.push_back(0);
-			possible_t2.push_back(n2);
+			double ts1, ts2;
+			double te1, te2;
+			Segment s2_start = { s2.m_start, s2.m_start };
+			Segment s2_end = { s2.m_end, s2.m_end };
+			double r1 = distance(s1, s2_start, ts1, ts2);
+			double r2 = distance(s1, s2_end, te1, te2);
+
+			if (((ts1 < 0) && (te1 < 0)) ||
+				((ts1 > n1) && (te1 > n1)))
+			{
+				possible_t1 = { 0, n1 };
+				possible_t2 = { 0, n2 };
+			}
+			else
+			{
+				tr1 = ts1;
+				tr2 = ts2;
+				return r1;
+			}
 		}
 		else
-			possible_t2.push_back(t2);
+		{
+			double D = (s2.m_start - s1.m_start) * (s1.m_end - s1.m_start) * 2 / n1;
+			double E = (s2.m_end - s2.m_start) * (s1.m_end - s1.m_start) * 2 / (n1 * n2);
+			double F = 2;
+
+			double A = (s2.m_start - s1.m_start) * (s2.m_end - s2.m_start) * 2 / n2;
+			double B = (s2.m_end - s2.m_start) * (s1.m_end - s1.m_start) * 2 / (n1 * n2);
+			double C = 2;
+
+			double det = C * F - E * B;
+			double det1 = C * D - A * E;
+			double det2 = B * D - A * F;
+
+			double t1 = n1 > 0 ? (n2 > 0 ? det1 / det : D / F) : 0;
+			double t2 = n2 > 0 ? (n1 > 0 ? det2 / det : -A / C) : 0;
+
+			if ((t1 < 0) || (t1 > n1))
+			{
+				possible_t1.push_back(0);
+				possible_t1.push_back(n1);
+			}
+			else
+				possible_t1.push_back(t1);
+
+			if ((t2 < 0) || (t2 > n2))
+			{
+				possible_t2.push_back(0);
+				possible_t2.push_back(n2);
+			}
+			else
+				possible_t2.push_back(t2);
+		}
 
 		double min_d = numeric_limits<double>::max();
 
@@ -76,19 +102,22 @@ double distance(const Segment& s1, const Segment& s2)
 			{
 				double d = sqrt(f(pt1, pt2));
 				if (d < min_d)
+				{
+					tr1 = pt1;
+					tr2 = pt2;
 					min_d = d;
+				}
 			}
 		}
 
 		return min_d;
 	}
-
-	return 0;
 }
 
 void test(const Segment& s1, const Segment& s2, double etalon)
 {
-	double d = distance(s1, s2);
+	double t1, t2;
+	double d = distance(s1, s2, t1, t2);
 	if (d != etalon)
 		cerr << "Error: answer=" << d << ", " << "etalon=" << etalon << endl;
 	else
@@ -137,6 +166,12 @@ void test_all()
 		Segment s1{ {1, 1, 1}, {2, 2, 2} };
 		Segment s2{ {1.5, 1.5, 1.5}, {1.8, 1.8, 1.8} };
 		test(s1, s2, sqrt(0));
+	}
+
+	{
+		Segment s1{ {0, 0, 0}, {3, 0, 0} };
+		Segment s2{ {1, 1, 0}, {2, 1, 0} };
+		test(s1, s2, 1);
 	}
 }
 
